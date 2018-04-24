@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>koa+websocket学习</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        #talk {
+            width: 700px;
+            margin: 0 auto;
+            height: 700px;
+            border: 1px solid #000;
+            position: relative;
+        }
+
+        #msg {
+            height: 600px;
+            overflow: auto;
+            background-color: skyblue;
+        }
+
+        #input {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 50px;
+        }
+    </style>
+    <script src="./socket.io.js"></script>
+</head>
+
+<body>
+    koa+websocket学习
+
+    <div id="talk">
+        <div id="status"></div>
+        <div id="msg"></div>
+        <input type="text" id="input">
+    </div>
+
+    <script>
+        let status = document.querySelector('#status');
+        let msg = document.querySelector('#msg');
+        let input = document.querySelector('#input');
+        //建立websocket连接
+        socket = io.connect('http://localhost:3000');
+        //收到server的连接确认
+        socket.on('open', function (d) {
+            status.innerText = d;
+        });
+        socket.on('msg', function (d) {
+            msg.innerHTML += `<div>${d}</div>`;
+        })
+
+        input.onkeydown = function (e) {
+            if (e.keyCode === 13) {
+                var v = this.value;
+                if (!v) return;
+                socket.send(v);
+                this.value = '';
+            }
+        }
+    </script>
+</body>
+
+</html>
