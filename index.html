@@ -20,8 +20,8 @@
             position: relative;
         }
 
-        #msg {
-            height: 600px;
+        .msg {
+            height: 200px;
             overflow: auto;
             background-color: skyblue;
         }
@@ -41,29 +41,42 @@
 
     <div id="talk">
         <div id="status"></div>
-        <div id="msg"></div>
+        <div id="msg" class="msg"></div>
+        <div id="status_news"></div>
+        <div id="msg_news" class="msg"></div>
         <input type="text" id="input">
     </div>
 
     <script>
-        let status = document.querySelector('#status');
-        let msg = document.querySelector('#msg');
-        let input = document.querySelector('#input');
+        const status = document.querySelector('#status');
+        const msg = document.querySelector('#msg');
+        const status_news = document.querySelector('#status_news');
+        const msg_news = document.querySelector('#msg_news');
+        const input = document.querySelector('#input');
         //建立websocket连接
-        socket = io.connect('http://localhost:3000');
+        const socket = io.connect('http://localhost:3000');
+       const socket_news = io.connect('http://localhost:3000/news')
         //收到server的连接确认
-        socket.on('open', function (d) {
+        socket.on('open', d => {
             status.innerText = d;
         });
-        socket.on('msg', function (d) {
+        socket.on('msg', d => {
             msg.innerHTML += `<div>${d}</div>`;
+        });
+        
+        socket_news.on('open',d=>{
+            status_news.innerText = d;
         })
+        socket_news.on('msg_news', d => {
+            msg_news.innerHTML += `<div>${d}</div>`;
+        });
 
-        input.onkeydown = function (e) {
+        input.onkeydown = function(e){
             if (e.keyCode === 13) {
-                var v = this.value;
+                let v = this.value;
                 if (!v) return;
-                socket.send(v);
+                 socket.send(v);
+                socket_news.send(v);
                 this.value = '';
             }
         }

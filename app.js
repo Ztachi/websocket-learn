@@ -3,7 +3,7 @@
  * @Date: 2018-04-24 14:39:36 
  * @Description: koa学习
  * @Last Modified by: 詹真琦(legendryztachi@gmail.com)
- * @Last Modified time: 2018-04-25 00:03:47
+ * @Last Modified time: 2018-04-25 22:39:37
  */
 const koa = require("koa");
 const app = new koa();
@@ -55,7 +55,7 @@ app.use(route.get('/redirect', redirect));
 app.use(route.get('/error', error));
 
 
-app.on('error', function (err) { //监听错误
+app.on('error', err => { //监听错误
     console.log('logging error ', err.message);
     console.log(err);
 });
@@ -64,30 +64,44 @@ server.listen(3000, () => {
     console.log('start server listen 3000');
 });
 
-io.on('connection', function (socket) {
-    socket.emit('open', '连接成功！'); //通知客户端已连接
+io.on('connection', socket => {
+    socket.emit('open', '连接成功！路径/'); //通知客户端已连接
 
     let user = {
         name: false
     }
 
     // 对message事件的监听
-    socket.on('message', function (msg) {
+    socket.on('message', msg => {
         let time = new Date();
         if (user.name) {
-            io.sockets.emit('msg', `${time}--${user.name}: ${msg}`);
+            io.sockets.emit('msg', `${time}-->${user.name}: ${msg}`); //对所有人发送
         } else {
             user.name = msg;
-            socket.emit('msg', `${user.name},欢迎您登录`);
-            socket.broadcast.emit('msg', `欢迎${user.name}加入聊天室`);
+            socket.emit('msg', `${user.name},欢迎您登录`); //对自己发送
+            socket.broadcast.emit('msg', `欢迎${user.name}加入聊天室`); //对除自己之外的人发送
         }
 
     });
 
     //监听出退事件
-    socket.on('disconnect', function () {
+    socket.on('disconnect', () => {
         if (!user.name) return;
         socket.broadcast.emit('msg', `${user.name}已退出聊天室`);
     });
 
+});
+
+let user = 0;
+const news = io.of('/news').on('connection', socket => { //监听/news路由
+    let u = user++;
+    socket.emit('open', `连接成功！${u}欢迎登陆`);
+
+    socket.on('message', msg => {
+        news.emit('msg_news', `${u}:${msg}`);
+    });
+
+    socket.on('disconnect', () => {
+        socket.broadcast.emit('msg_news', `${u}已退出聊天室`);
+    });
 });
